@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import streamlit as st
 
+from constantes.constantes import POSTE
 from src.filtres import Filtres
 from src.graphiques import Graphiques
 
@@ -16,7 +17,9 @@ def lancer_app(df: pd.DataFrame):
     with st.sidebar:
         st.header("Filtres")
         championnat = st.selectbox("Championnat", options=["Tous"] + championnats)
-        poste = st.selectbox("Poste", options=["Tous"] + postes)
+        poste = st.selectbox(
+            "Poste", options=["Tous"] + postes, format_func=lambda x: POSTE.get(x, x)
+        )
         ovr_minimum = st.slider(
             "OVR minimum",
             min_value=int(df["OVR"].min()),
@@ -33,19 +36,19 @@ def lancer_app(df: pd.DataFrame):
     indicateur_nombre.metric("Joueurs", len(joueurs_filtres))
     indicateur_ovr.metric(
         "OVR moyen",
-        "—" if joueurs_filtres.empty else f"{joueurs_filtres['OVR'].mean():.1f}",
+        " " if joueurs_filtres.empty else f"{joueurs_filtres['OVR'].mean():.2f}",
     )
     indicateur_pac.metric(
         "PAC moyen",
-        "—" if joueurs_filtres.empty else f"{joueurs_filtres['PAC'].mean():.1f}",
+        " " if joueurs_filtres.empty else f"{joueurs_filtres['PAC'].mean():.2f}",
     )
     indicateur_dri.metric(
         "DRI moyen",
-        "—" if joueurs_filtres.empty else f"{joueurs_filtres['DRI'].mean():.1f}",
+        " " if joueurs_filtres.empty else f"{joueurs_filtres['DRI'].mean():.2f}",
     )
 
     if joueurs_filtres.empty:
-        st.warning("Aucun joueur ne correspond à ces critères.")
+        st.warning("Aucun joueur.")
         return
 
     graphiques = Graphiques(joueurs_filtres)
@@ -61,33 +64,22 @@ def lancer_app(df: pd.DataFrame):
 
     if graphique_choisi == "Distribution des notes":
         figure = graphiques.afficher_histogramme_ovr()
-        justification = (
-            "L’histogramme montre comment les notes générales se répartissent "
-            "dans la sélection."
-        )
+
     elif graphique_choisi == "Comparaison des championnats":
         figure = graphiques.afficher_comparaison_championnats()
-        justification = (
-            "Le barplot compare l’OVR moyen des six championnats les plus "
-            "représentés, avec un axe partant de zéro."
-        )
+
     else:
         figure = graphiques.afficher_relation_vitesse_dribble()
-        justification = (
-            "Le nuage de points permet de repérer les joueurs à la fois rapides "
-            "et bons dribbleurs."
-        )
 
     st.pyplot(figure, width="stretch")
-    st.caption(justification)
     plt.close(figure)
 
     st.subheader("Meilleurs profils")
     colonnes = ["Name", "Team", "League", "Position", "OVR", "PAC", "DRI"]
     st.dataframe(
-        joueurs_filtres.sort_values(
-            ["OVR", "PAC", "DRI"], ascending=False
-        )[colonnes].head(20),
+        joueurs_filtres.sort_values(["OVR", "PAC", "DRI"], ascending=False)[
+            colonnes
+        ].head(20),
         hide_index=True,
         width="stretch",
     )

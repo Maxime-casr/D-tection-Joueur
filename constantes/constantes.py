@@ -1,5 +1,3 @@
-from pathlib import Path
-
 DATA_PATH = r"constantes\data\all_players_clean.csv"
 BIG_FIVE = {
     "Premier League",
@@ -8,6 +6,17 @@ BIG_FIVE = {
     "Bundesliga",
     "Ligue 1 McDonald's",
 }
-WING_POSITIONS = ["LW", "RW", "LM", "RM"]
-ACCENT = "#127369"
-PALETTE = ["#127369", "#F2B705", "#D95D39", "#3A7CA5", "#7A5195", "#6B705C"]
+POSTE = {
+    "CM": "Milieu central",
+    "GK": "Gardien",
+    "CB": "Défenseur central",
+    "RB": "Arrière droit",
+    "LB": "Arrière gauche",
+    "CDM": "Milieu défensif",
+    "RM": "Milieu droit",
+    "LM": "Milieu gauche",
+    "CAM": "Milieu offensif",
+    "RW": "Ailier droit",
+    "LW": "Ailier gauche",
+    "ST": "Attaquant",
+}
