@@ -1,5 +1,12 @@
+import pandas as pd
+
+from app import lancer_app
+from constantes.constantes import DATA_PATH
+
+
 def main():
-    print("Hello from visualisation-donnees!")
+    df = pd.read_csv(DATA_PATH)
+    lancer_app(df)
 
 
 if __name__ == "__main__":
