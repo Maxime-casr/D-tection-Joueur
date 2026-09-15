@@ -100,8 +100,8 @@ class Graphiques:
                 x=variable_x,
                 y=variable_y,
                 hue="Poste affiché",
-                alpha=0.5,
-                s=24,
+                alpha=0.8,
+                s=28,
                 linewidth=0,
                 ax=axe,
             )
