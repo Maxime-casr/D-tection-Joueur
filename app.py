@@ -5,6 +5,7 @@ import streamlit as st
 from constantes.constantes import POSTE
 from src.filtres import Filtres
 from src.graphiques import Graphiques
+from src.valeur_marchante import afficher_valeur_marchande, memoriser_joueur_valeur
 
 
 def lancer_app(df: pd.DataFrame):
@@ -247,8 +248,27 @@ def lancer_app(df: pd.DataFrame):
     meilleurs_profils["Poste"] = meilleurs_profils["Poste"].map(
         lambda valeur: POSTE.get(valeur, valeur)
     )
+    meilleurs_profils = meilleurs_profils.reset_index(drop=True)
+    meilleurs_profils["Valeur marchande"] = ":material/euro: Afficher"
     st.dataframe(
         meilleurs_profils,
+        column_config={
+            "Valeur marchande": st.column_config.ButtonColumn(
+                "Valeur marchande",
+                help="Recherche la valeur auprès de Player ELO (deux requêtes au premier clic).",
+                type="secondary",
+                alignment="center",
+                on_click=memoriser_joueur_valeur,
+                args=(meilleurs_profils[["Joueur", "Équipe"]].copy(),),
+                key="clic_valeur_marchande",
+            )
+        },
         hide_index=True,
         width="stretch",
     )
+
+    joueur_selectionne = st.session_state.pop("joueur_valeur_selectionne", None)
+    if joueur_selectionne:
+        afficher_valeur_marchande(
+            joueur_selectionne["nom"], joueur_selectionne["equipe"]
+        )

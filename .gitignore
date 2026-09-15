@@ -8,3 +8,6 @@ wheels/
 
 # Virtual environments
 .venv
+
+# Local Player ELO lookup progress
+constantes/data/.playerelo_ids_state.json

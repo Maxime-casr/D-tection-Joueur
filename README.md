@@ -19,6 +19,19 @@ Installer les dépendances avec `pip install -e .` dans un environnement Python 
 Lancer l'application depuis la racine avec `streamlit run main.py`.
 Les filtres de genre, championnat, poste, âge, OVR et nationalité mettent à jour les indicateurs, les graphiques, le radar et le tableau trié.
 
+## Ajouter les IDs Player ELO
+
+Le script `add_ids.py` recherche les joueurs par nom et équipe, puis ajoute la colonne `playerelo_id` à `all_players_clean.csv`. Il attend 6,1 secondes entre les appels, sauvegarde après chaque recherche et reprend automatiquement les exécutions interrompues.
+
+Dans PowerShell, définir la clé uniquement pour le terminal courant puis lancer un petit lot :
+
+```powershell
+$env:PLAYERELO_API_KEY = "VOTRE_NOUVELLE_CLE"
+python add_ids.py --max-requests 10
+```
+
+Le forfait gratuit autorise 500 requêtes par mois. Le plafond par défaut est donc volontairement limité à 10; augmentez-le seulement en fonction du quota restant. Les recherches sans correspondance certaine restent vides afin d'éviter d'attribuer un mauvais identifiant.
+
 ## Limite du dataset
 Les notes proviennent d'EA Sports FC : elles représentent une évaluation de jeu vidéo et non des performances sportives observées en match.
 Le dataset ne contient notamment ni coût de transfert, ni salaire, ni historique de blessures, indispensables à une décision réelle.
