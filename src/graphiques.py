@@ -2,6 +2,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 
+from constantes.constantes import POSTE
+
 
 class Graphiques:
     def __init__(self, df):
@@ -69,6 +71,55 @@ class Graphiques:
         axe.set_ylabel("Dribble DRI (sur 99)")
         axe.set_xlim(0, 99)
         axe.set_ylim(0, 99)
+        figure.tight_layout()
+        return figure
+
+    def afficher_distribution_age(self) -> plt.Figure:
+        donnees = self.df.assign(
+            Genre=self.df["gender"].map({"M": "Hommes", "F": "Femmes"})
+        )
+        figure, axe = plt.subplots(figsize=(8, 5))
+        sns.histplot(
+            donnees,
+            x="Age",
+            hue="Genre",
+            multiple="stack",
+            bins=range(int(donnees["Age"].min()), int(donnees["Age"].max()) + 2),
+            palette={"Hommes": "#168AAD", "Femmes": "#E76F51"},
+            edgecolor="white",
+            ax=axe,
+        )
+        axe.set_title("Répartition des joueurs par âge")
+        axe.set_xlabel("Âge")
+        axe.set_ylabel("Nombre de joueurs")
+        figure.tight_layout()
+        return figure
+
+    def afficher_attributs_par_poste(self) -> plt.Figure:
+        statistiques = ["PAC", "SHO", "PAS", "DRI", "DEF", "PHY"]
+        postes_principaux = self.df["Position"].value_counts().head(8).index
+        moyennes = (
+            self.df[self.df["Position"].isin(postes_principaux)]
+            .groupby("Position")[statistiques]
+            .mean()
+        )
+        moyennes.index = [POSTE.get(poste, poste) for poste in moyennes.index]
+
+        figure, axe = plt.subplots(figsize=(9, 5))
+        sns.heatmap(
+            moyennes,
+            annot=True,
+            fmt=".0f",
+            cmap="YlGnBu",
+            vmin=30,
+            vmax=90,
+            linewidths=0.5,
+            cbar_kws={"label": "Note moyenne"},
+            ax=axe,
+        )
+        axe.set_title("Forces moyennes des principaux postes")
+        axe.set_xlabel("Attribut")
+        axe.set_ylabel("")
         figure.tight_layout()
         return figure
 

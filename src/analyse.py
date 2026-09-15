@@ -9,11 +9,14 @@ COLONNES_REQUISES = {
     "League",
     "Position",
     "Age",
+    "Nation",
+    "gender",
     "OVR",
     "PAC",
     "SHO",
     "PAS",
     "DRI",
+    "DEF",
     "PHY",
 }
 

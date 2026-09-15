@@ -18,3 +18,17 @@ class Filtres:
     def filtrer_par_ovr(self, ovr_minimum: int) -> pd.DataFrame:
         self.df = self.df[self.df["OVR"] >= ovr_minimum]
         return self.df
+
+    def filtrer_par_genre(self, genres: list[str]) -> pd.DataFrame:
+        if genres:
+            self.df = self.df[self.df["gender"].isin(genres)]
+        return self.df
+
+    def filtrer_par_age(self, age_minimum: int, age_maximum: int) -> pd.DataFrame:
+        self.df = self.df[self.df["Age"].between(age_minimum, age_maximum)]
+        return self.df
+
+    def filtrer_par_nation(self, nations: list[str]) -> pd.DataFrame:
+        if nations:
+            self.df = self.df[self.df["Nation"].isin(nations)]
+        return self.df

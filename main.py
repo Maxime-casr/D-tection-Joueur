@@ -8,8 +8,9 @@ from src.analyse import charger_donnees
 def main():
     st.set_page_config(
         page_title="Détection football",
+        page_icon=":material/person_search:",
         layout="wide",
-        initial_sidebar_state="expanded",
+        initial_sidebar_state="auto",
     )
     try:
         df = charger_donnees(DATA_PATH)
