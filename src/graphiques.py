@@ -10,20 +10,27 @@ class Graphiques:
         self.df = df
         sns.set_theme(style="whitegrid", context="notebook")
 
-    def afficher_histogramme_ovr(self) -> plt.Figure:
+    def afficher_distribution(self, variable: str, libelle: str) -> plt.Figure:
         figure, axe = plt.subplots(figsize=(8, 5))
         sns.histplot(
             self.df,
-            x="OVR",
+            x=variable,
             bins=15,
             color="#168AAD",
             edgecolor="white",
             ax=axe,
         )
-        axe.set_title("Distribution des notes générales")
-        axe.set_xlabel("Note générale OVR (sur 99)")
+        axe.axvline(
+            self.df[variable].median(),
+            color="#E76F51",
+            linestyle="--",
+            linewidth=2,
+            label="Médiane",
+        )
+        axe.set_title(f"Distribution de {libelle.lower()}")
+        axe.set_xlabel(libelle)
         axe.set_ylabel("Nombre de joueurs")
-        axe.set_xlim(0, 99)
+        axe.legend()
         figure.tight_layout()
         return figure
 
@@ -56,21 +63,66 @@ class Graphiques:
         figure.tight_layout()
         return figure
 
-    def afficher_relation_vitesse_dribble(self) -> plt.Figure:
-        figure, axe = plt.subplots(figsize=(8, 5))
-        sns.scatterplot(
-            self.df,
-            x="PAC",
-            y="DRI",
-            color="#E76F51",
-            alpha=0.75,
-            ax=axe,
-        )
-        axe.set_title("Relation entre vitesse et dribble")
-        axe.set_xlabel("Vitesse PAC (sur 99)")
-        axe.set_ylabel("Dribble DRI (sur 99)")
-        axe.set_xlim(0, 99)
-        axe.set_ylim(0, 99)
+    def afficher_relation(
+        self,
+        variable_x: str,
+        variable_y: str,
+        libelle_x: str,
+        libelle_y: str,
+        mode: str = "Densité",
+    ) -> plt.Figure:
+        donnees = self.df[[variable_x, variable_y, "Position"]].dropna()
+        figure, axe = plt.subplots(figsize=(9, 5.5))
+
+        if mode == "Densité":
+            densite = axe.hexbin(
+                donnees[variable_x],
+                donnees[variable_y],
+                gridsize=32,
+                mincnt=1,
+                cmap=sns.light_palette("#075E54", as_cmap=True),
+                linewidths=0.2,
+            )
+            figure.colorbar(densite, ax=axe, label="Nombre de profils")
+            axe.grid(alpha=0.2)
+        else:
+            postes_principaux = donnees["Position"].value_counts().head(6).index
+            donnees_points = donnees.sample(
+                n=min(len(donnees), 1_500), random_state=42
+            ).copy()
+            donnees_points["Poste affiché"] = (
+                donnees_points["Position"]
+                .where(donnees_points["Position"].isin(postes_principaux), "Autres")
+                .map(lambda poste: POSTE.get(poste, poste))
+            )
+            sns.scatterplot(
+                donnees_points,
+                x=variable_x,
+                y=variable_y,
+                hue="Poste affiché",
+                palette="colorblind",
+                alpha=0.5,
+                s=24,
+                linewidth=0,
+                ax=axe,
+            )
+            axe.legend(title="Poste", bbox_to_anchor=(1.02, 1), loc="upper left")
+
+        if donnees[variable_x].nunique() > 1 and donnees[variable_y].nunique() > 1:
+            sns.regplot(
+                donnees,
+                x=variable_x,
+                y=variable_y,
+                scatter=False,
+                ci=None,
+                color="#D1495B",
+                line_kws={"linewidth": 2, "label": "Tendance"},
+                ax=axe,
+            )
+
+        axe.set_title(f"Relation entre {libelle_x.lower()} et {libelle_y.lower()}")
+        axe.set_xlabel(libelle_x)
+        axe.set_ylabel(libelle_y)
         figure.tight_layout()
         return figure
 

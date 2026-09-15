@@ -7,9 +7,20 @@ from src.filtres import Filtres
 from src.graphiques import Graphiques
 from src.valeur_marchante import afficher_valeur_marchande, memoriser_joueur_valeur
 
+VARIABLES_ANALYSE = {
+    "OVR": "Note générale (OVR)",
+    "PAC": "Vitesse (PAC)",
+    "SHO": "Tir (SHO)",
+    "PAS": "Passe (PAS)",
+    "DRI": "Dribble (DRI)",
+    "DEF": "Défense (DEF)",
+    "PHY": "Physique (PHY)",
+    "Age": "Âge",
+}
+
 
 def lancer_app(df: pd.DataFrame):
-    st.title("Tableau de bord de recrutement", icon=":material/person_search:")
+    st.title("Tableau de bord de recrutement")
     st.caption("Explorez les profils des joueurs")
 
     championnats = sorted(df["League"].dropna().unique())
@@ -92,28 +103,38 @@ def lancer_app(df: pd.DataFrame):
         return
 
     graphiques = Graphiques(joueurs_filtres)
-    st.subheader("Analyse graphique", icon=":material/analytics:")
+    st.subheader("Analyse graphique")
     (
         onglet_distribution,
         onglet_demographie,
         onglet_comparaison,
         onglet_postes,
         onglet_relation,
-    ) = st.tabs(
-        ["Niveaux", "Démographie", "Championnats", "Postes", "Vitesse et dribble"]
-    )
+    ) = st.tabs(["Distribution", "Démographie", "Championnats", "Postes", "Relations"])
 
     with onglet_distribution:
-        st.markdown(
-            "**Question : comment se répartit le niveau des joueurs retenus ?**"
+        variable_distribution = st.selectbox(
+            "Variable à analyser",
+            options=list(VARIABLES_ANALYSE),
+            format_func=lambda variable: VARIABLES_ANALYSE[variable],
+            key="variable_distribution",
         )
+        libelle_distribution = VARIABLES_ANALYSE[variable_distribution]
+        st.markdown(f"**Comment se répartit {libelle_distribution.lower()} ?**")
         st.caption(
-            "L’histogramme convient à une variable numérique continue et montre "
-            "les zones de concentration des notes."
+            "L’histogramme montre les zones de concentration, la ligne pointillée "
+            "indique la médiane de la sélection."
         )
-        figure = graphiques.afficher_histogramme_ovr()
+        figure = graphiques.afficher_distribution(
+            variable_distribution, libelle_distribution
+        )
         st.pyplot(figure, width="stretch")
         plt.close(figure)
+        st.info(
+            f"Lecture : 50 % des profils se situent entre "
+            f"{joueurs_filtres[variable_distribution].quantile(0.25):.0f} et "
+            f"{joueurs_filtres[variable_distribution].quantile(0.75):.0f}."
+        )
 
     with onglet_demographie:
         st.markdown("**Question : quels âges composent la sélection ?**")
@@ -137,10 +158,7 @@ def lancer_app(df: pd.DataFrame):
         moyennes = joueurs_filtres.groupby(colonne_groupe)["OVR"].mean()
         meilleur_groupe = moyennes.idxmax()
         st.markdown(f"**Question : quels {groupe} affichent le meilleur OVR moyen ?**")
-        st.caption(
-            "Le diagramme en barres compare des catégories sur une même échelle; "
-            "l’axe commence à zéro et six couleurs au maximum sont utilisées."
-        )
+        st.caption("Le diagramme en barres compare des catégories")
         figure = graphiques.afficher_comparaison_championnats()
         st.pyplot(figure, width="stretch")
         plt.close(figure)
@@ -165,34 +183,70 @@ def lancer_app(df: pd.DataFrame):
         )
 
     with onglet_relation:
-        correlation = joueurs_filtres[["PAC", "DRI"]].corr().iloc[0, 1]
-        intensite = (
-            "forte"
-            if abs(correlation) >= 0.7
-            else "modérée"
-            if abs(correlation) >= 0.4
-            else "faible"
+        colonne_x, colonne_y = st.columns(2)
+        variable_x = colonne_x.selectbox(
+            "Axe horizontal",
+            options=list(VARIABLES_ANALYSE),
+            index=1,
+            format_func=lambda variable: VARIABLES_ANALYSE[variable],
+            key="variable_relation_x",
         )
-        st.markdown(
-            "**Question : les joueurs rapides sont-ils aussi de bons dribbleurs ?**"
+        variable_y = colonne_y.selectbox(
+            "Axe vertical",
+            options=list(VARIABLES_ANALYSE),
+            index=4,
+            format_func=lambda variable: VARIABLES_ANALYSE[variable],
+            key="variable_relation_y",
         )
-        st.caption(
-            "Le nuage de points est adapté à deux variables numériques et révèle "
-            "leur liaison ainsi que les profils atypiques."
+        mode_relation = st.segmented_control(
+            "Affichage",
+            options=["Densité", "Points par poste"],
+            default="Densité",
+            width="stretch",
+            key="mode_relation",
         )
-        figure = graphiques.afficher_relation_vitesse_dribble()
-        st.pyplot(figure, width="stretch")
-        plt.close(figure)
-        if pd.isna(correlation):
-            st.info(
-                "Lecture : la sélection est trop homogène pour calculer une corrélation."
-            )
+        if variable_x == variable_y:
+            st.warning("Choisissez deux variables différentes pour les comparer.")
         else:
-            sens = "positive" if correlation >= 0 else "négative"
-            st.info(
-                f"Lecture : la relation est {intensite} et {sens} "
-                f"(corrélation = {correlation:.2f})."
+            libelle_x = VARIABLES_ANALYSE[variable_x]
+            libelle_y = VARIABLES_ANALYSE[variable_y]
+            correlation = joueurs_filtres[[variable_x, variable_y]].corr().iloc[0, 1]
+            intensite = (
+                "forte"
+                if abs(correlation) >= 0.7
+                else "modérée"
+                if abs(correlation) >= 0.4
+                else "faible"
             )
+            st.markdown(
+                f"**Quelle relation existe entre {libelle_x.lower()} et "
+                f"{libelle_y.lower()} ?**"
+            )
+            if mode_relation == "Densité":
+                st.caption(
+                    "La couleur indique le nombre de profils dans chaque zone; la ligne "
+                    "rouge montre la tendance générale."
+                )
+            else:
+                st.caption(
+                    "Les six postes principaux sont distingués et les autres "
+                    "sont regroupés."
+                )
+            figure = graphiques.afficher_relation(
+                variable_x,
+                variable_y,
+                libelle_x,
+                libelle_y,
+                mode_relation or "Densité",
+            )
+            st.pyplot(figure, width="stretch")
+            plt.close(figure)
+            if pd.isna(correlation):
+                st.info(
+                    "Lecture : la sélection est trop homogène pour calculer une corrélation."
+                )
+            else:
+                st.info(f"Corrélation = {correlation:.2f}).")
 
     st.subheader("Face-à-face de joueurs", icon=":material/compare_arrows:")
     st.caption("Le radar compare deux profils sur cinq attributs")
@@ -255,7 +309,6 @@ def lancer_app(df: pd.DataFrame):
         column_config={
             "Valeur marchande": st.column_config.ButtonColumn(
                 "Valeur marchande",
-                help="Recherche la valeur auprès de Player ELO (deux requêtes au premier clic).",
                 type="secondary",
                 alignment="center",
                 on_click=memoriser_joueur_valeur,
