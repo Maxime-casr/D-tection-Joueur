@@ -211,13 +211,7 @@ def lancer_app(df: pd.DataFrame):
             libelle_x = VARIABLES_ANALYSE[variable_x]
             libelle_y = VARIABLES_ANALYSE[variable_y]
             correlation = joueurs_filtres[[variable_x, variable_y]].corr().iloc[0, 1]
-            intensite = (
-                "forte"
-                if abs(correlation) >= 0.7
-                else "modérée"
-                if abs(correlation) >= 0.4
-                else "faible"
-            )
+
             st.markdown(
                 f"**Quelle relation existe entre {libelle_x.lower()} et "
                 f"{libelle_y.lower()} ?**"

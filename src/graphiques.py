@@ -86,7 +86,7 @@ class Graphiques:
             figure.colorbar(densite, ax=axe, label="Nombre de profils")
             axe.grid(alpha=0.2)
         else:
-            postes_principaux = donnees["Position"].value_counts().head(6).index
+            postes_principaux = donnees["Position"].value_counts().head(12).index
             donnees_points = donnees.sample(
                 n=min(len(donnees), 1_500), random_state=42
             ).copy()
