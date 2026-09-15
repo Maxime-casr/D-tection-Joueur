@@ -11,6 +11,7 @@ class PlayerEloError(RuntimeError):
     pass
 
 
+# super
 def normaliser(texte: object) -> str:
     valeur = unicodedata.normalize("NFKD", str(texte or ""))
     valeur = "".join(
