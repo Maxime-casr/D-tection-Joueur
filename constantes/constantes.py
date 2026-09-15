@@ -1,4 +1,6 @@
-DATA_PATH = r"constantes\data\all_players_clean.csv"
+from pathlib import Path
+
+DATA_PATH = Path(__file__).resolve().parent / "data" / "all_players_clean.csv"
 BIG_FIVE = {
     "Premier League",
     "LALIGA EA SPORTS",
