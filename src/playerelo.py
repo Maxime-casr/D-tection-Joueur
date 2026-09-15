@@ -4,7 +4,7 @@ from difflib import SequenceMatcher
 
 import requests
 
-from constantes.constantes import API_KEY, BASE_URL
+from constantes.constantes import BASE_URL
 
 
 class PlayerEloError(RuntimeError):
@@ -117,10 +117,11 @@ def _extraire_joueurs(resultat: object) -> list[dict]:
 def rechercher_joueur(
     nom: str,
     equipe: str,
+    api_key: str,
     session: requests.Session | None = None,
 ) -> dict:
     """Recherche un joueur et retourne le candidat Player ELO le plus fiable."""
-    client = session or _creer_session(API_KEY)
+    client = session or _creer_session(api_key)
     resultat = _appeler_api(
         client,
         "/players",
@@ -136,10 +137,11 @@ def rechercher_joueur(
 
 def recuperer_valeur_par_id(
     player_id: int | str,
+    api_key: str,
     session: requests.Session | None = None,
 ) -> dict:
     """Récupère la réponse de valeur marchande pour un ID Player ELO."""
-    client = session or _creer_session(API_KEY)
+    client = session or _creer_session(api_key)
     resultat = _appeler_api(client, f"/players/{player_id}/value")
     if not isinstance(resultat, dict):
         raise PlayerEloError("Format de valeur marchande inattendu.")
@@ -169,11 +171,11 @@ def extraire_valeur_marchande(resultat: dict) -> int | float | str | None:
     return None
 
 
-def recuperer_joueur_et_valeur(nom: str, equipe: str) -> dict:
+def recuperer_joueur_et_valeur(nom: str, equipe: str, api_key: str) -> dict:
     """Résout l’ID puis récupère la valeur marchande en deux requêtes API."""
-    session = _creer_session(API_KEY)
-    joueur = rechercher_joueur(nom, equipe, session)
-    reponse_valeur = recuperer_valeur_par_id(joueur["player_id"], session)
+    session = _creer_session(api_key)
+    joueur = rechercher_joueur(nom, equipe, api_key, session)
+    reponse_valeur = recuperer_valeur_par_id(joueur["player_id"], api_key, session)
     return {
         "player_id": joueur["player_id"],
         "player_name": joueur.get("player_name", nom),

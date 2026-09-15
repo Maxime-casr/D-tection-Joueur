@@ -1,7 +1,23 @@
+import os
+
 import pandas as pd
 import streamlit as st
 
 from src.playerelo import PlayerEloError, recuperer_joueur_et_valeur
+
+
+def _obtenir_cle_playerelo() -> str:
+    cle = os.getenv("PLAYERELO_API_KEY")
+    if not cle:
+        try:
+            cle = st.secrets.get("PLAYER_ELO_API_KEY")
+        except FileNotFoundError:
+            cle = None
+    if not cle:
+        raise PlayerEloError(
+            "Clé Player ELO absente. Configurez PLAYER_ELO_API_KEY dans les secrets Streamlit."
+        )
+    return str(cle)
 
 
 def _formater_valeur_marchande(valeur: object) -> str:
@@ -23,7 +39,9 @@ def afficher_valeur_marchande(nom: str, equipe: str) -> None:
     if cle_cache not in cache:
         with st.spinner("Recherche du joueur et de sa valeur..."):
             try:
-                cache[cle_cache] = recuperer_joueur_et_valeur(nom, equipe)
+                cache[cle_cache] = recuperer_joueur_et_valeur(
+                    nom, equipe, _obtenir_cle_playerelo()
+                )
             except PlayerEloError as erreur:
                 st.error(str(erreur), icon=":material/error:")
                 return

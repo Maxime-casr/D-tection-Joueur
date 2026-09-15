@@ -23,5 +23,3 @@ POSTE = {
     "ST": "Attaquant",
 }
 BASE_URL = "https://data-api.playerelo.football/v1"
-API_KEY = "pe_live_PLX_8WHizkhL4B1xb9SRGYDPGROMhoEd"
-API_KEY8API_FOOTBALL = "8a6fe7e331b50df34f1cb4cc77557818"
